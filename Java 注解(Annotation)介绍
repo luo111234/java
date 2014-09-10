@@ -1,0 +1,134 @@
+ Java 注解(Annotation)介绍
+分类： JAVA 2013-12-26 15:22 175人阅读 评论(0) 收藏 举报
+Annotation
+一、概念
+Annontation是JDK5.0 开始引入的新特征。中文名称一般叫注解。它提供了一种安全的类似注释的机制，用来将任何的信息或元数据（metadata）与程序元素（类、方法、成员变量等）进行关联。
+更通俗的意思是为程序的元素（类、方法、成员变量）加上更直观更明了的说明，这些说明信息是与程序的业务逻辑无关，并且是供指定的工具或框架使用的。
+Annontation像一种修饰符一样，应用于包、类型、构造方法、方法、成员变量、参数及本地变量的声明语句中。
+
+
+二、原理
+
+Annotation其实是一种接口。通过Java的反射机制相关的API来访问Annotation信息。相关类（框架或工具中的类）根据这些信息来决定如何使用该程序元素或改变它们的行为。
+Annotation是不会影响程序代码的执行，无论Annotation怎么变化，代码都始终如一地执行。Java语言解释器在工作时会忽略这些Annotation，因此在JVM中这些Annotation是“不起作用”的，只能通过配套的工具才能对这些Annotation类型的信息进行访问和处理。
+Annotation与interface的异同：
+
+1、Annotation类型使用关键字@interface而不是interface。
+这个关键字声明隐含了一个信息：它是继承了java.lang.annotation.Annotation接口，并非声明了一个interface
+2、Annotation类型、方法定义是独特的、受限制的。
+Annotation类型的方法必须声明为无参数、无异常抛出的。这些方法定义了Annotation的成员：方法名成为了成员名，而方法返回值成为了成员的类型。而方法返回值类型必须为primitive类型、Class类型、枚举类型、Annotation类型或者由前面类型之一作为元素的一维数组。方法的后面可以使用 default和一个默认数值来声明成员的默认值，null不能作为成员默认值，这与我们在非Annotation类型中定义方法有很大不同。
+　　Annotation类型和它的方法不能使用Annotation类型的参数、成员不能是generic(泛型)。只有返回值类型是Class的方法可以在Annotation类型中使用generic(泛型)，因为此方法能够用类转换将各种类型转换为Class。
+3、Annotation类型又与接口有着近似之处。
+　　它们可以定义常量、静态成员类型（比如枚举类型定义）。Annotation类型也可以如接口一般被实现或者继承。
+
+
+三、应用场合
+
+　　在开发Java程序，尤其是Java EE应用的时候，总是免不了与各种配置文件打交道。以Java EE中典型的S(pring)S(truts)H(ibernate)架构来说，Spring、Struts和Hibernate这三个框架都有自己的XML格式的配置文件。这些配置文件需要与Java源代码保存同步，否则的话就可能出现错误。而且这些错误有可能到了运行时刻才被发现。把同一份信息保存在两个地方，总是个坏的主意。理想的情况是在一个地方维护这些信息就好了。其它部分所需的信息则通过自动的方式来生成。JDK 5中引入了源代码中的注解（Annotation）这一机制。注解使得Java源代码中不但可以包含功能性的实现代码，还可以添加元数据。注解的功能类似于代码中的注释，所不同的是注解不是提供代码功能的说明，而是实现程序功能的重要组成部分。Java注解已经在很多框架中得到了广泛的使用，用来简化程序中的配置。
+
+
+四、常见标准的Annotation
+
+Java目前包括三种标准注解和四种元注解。
+从JDK5.0 版本开始，定义了三种标准Annotation类型：
+1、@Override
+　　java.lang.Override 是一个marker annotation类型，它被用作标注方法。它说明了被标注的方法重载了父类的方法，起到了断言的作用。如果我们使用了这种annotation在一个没有覆盖父类方法的方法时，java编译器将以一个编译错误来警示。
+　　这个annotaton常常在我们试图覆盖父类方法而确又写错了方法名时加一个保障性的校验过程。
+2、@Deprecated
+　　Deprecated也是一种marker annotation。当一个类型或者类型成员使用@Deprecated修饰的话，编译器将不鼓励使用这个被标注的程序元素。所以使用这种修饰具有一定的 “延续性”：如果我们在代码中通过继承或者覆盖的方式使用了这个过时的类型或者成员，虽然继承或者覆盖后的类型或者成员并不是被声明为 @Deprecated，但编译器仍然要报警。
+　　注意：@Deprecated这个annotation类型和javadoc中的 @deprecated这个tag是有区别的：前者是java编译器识别的，而后者是被javadoc工具所识别用来生成文档（包含程序成员为什么已经过时、它应当如何被禁止或者替代的描述）。
+3、@SuppressWarnings
+　　此注解能告诉Java编译器关闭对类、方法及成员变量的警告。
+　　有时编译时会提出一些警告，对于这些警告有的隐藏着Bug，有的是无法避免的，对于某些不想看到的警告信息，可以通过这个注解来屏蔽。
+　　SuppressWarning不是一个marker annotation。它有一个类型为String[]的成员，这个成员的值为被禁止的警告名。对于javac编译器来讲，被-Xlint选项有效的警告名也同样对@SuppressWarings有效，同时编译器忽略掉无法识别的警告名。
+
+
+元Annotation 指修饰Annotation的Annotation。JDK中定义了如下四种元Annotation：
+
+1、@Target：指定注解用于修饰类的哪个成员. @Target 包含了一个名为 value，类型为ElementType的成员变量。通过这个变量指定注解使用范围
+
+TYPE:类、接口或枚举(enum)声明
+
+FIELD：域(属性)声明
+
+METHOD：方法声明
+
+PARAMETER：参数声明
+
+CONSTRUCTOR：构造方法声明
+
+LOCAL_VARIABLE：局部变量声明
+
+ANNOTATION_TYPE：注释类型声明
+
+PACKAGE：包声明
+
+2、@Retention: 只能用于修饰一个 Annotation 定义, 用于指定该 Annotation 可以保留的域, @Rentention 包含一个 RetentionPolicy 类型的成员变量, 通过这个变量指定域。
+RetentionPolicy.CLASS: 编译器将把注解记录在 class 文件中. 当运行 Java 程序时, JVM 不会保留注解. 这是默认值
+RetentionPolicy.RUNTIME:编译器将把注释记录在 class 文件中. 当运行 Java 程序时, JVM 会保留注解. 程序可以通过反射获取该注释
+RetentionPolicy.SOURCE: 编译器直接丢弃这种策略的注释
+3、@Documented: 用于指定被该元 Annotation 修饰的 Annotation 类将被 javadoc 工具提取成文档。
+4、@Inherited: 被它修饰的 Annotation 将具有继承性.如果某个类使用了被 @Inherited 修饰的 Annotation, 则其子类将自动具有该注解。
+
+
+
+五、使用标准注解
+
+SuppressWarnings是我们平时用的比较多的一个注解，用法如下：
+
+
+[java] view plaincopy在CODE上查看代码片派生到我的代码片
+@SuppressWarnings("unchecked")  
+    public void aaa(){  
+          
+    }  
+
+
+我们可以查看JDK中标准注解SuppressWarnings的源码：
+
+
+[java] view plaincopy在CODE上查看代码片派生到我的代码片
+@Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE})  
+@Retention(RetentionPolicy.SOURCE)  
+public @interface SuppressWarnings {  
+    /** 
+     * The set of warnings that are to be suppressed by the compiler in the 
+     * annotated element.  Duplicate names are permitted.  The second and 
+     * successive occurrences of a name are ignored.  The presence of 
+     * unrecognized warning names is <i>not</i> an error: Compilers must 
+     * ignore any warning names they do not recognize.  They are, however, 
+     * free to emit a warning if an annotation contains an unrecognized 
+     * warning name. 
+     * 
+     * <p>Compiler vendors should document the warning names they support in 
+     * conjunction with this annotation type. They are encouraged to cooperate 
+     * to ensure that the same names work across multiple compilers. 
+     */  
+    String[] value();  
+}  
+
+可以看出SuppressWarnings Annotation类型只定义了一个单一的成员value，所以只有一个简单的value={...}作为name=value对。又由于成员值是一个数组，故使用大括号来声明数组值，如下：
+
+[java] view plaincopy在CODE上查看代码片派生到我的代码片
+@SuppressWarnings(value={"unchecked","fallthrough"})  
+    public void bbb(){  
+          
+    }  
+
+当Annotation只有单一成员，并成员命名为"value="。这时可以省去"value="。因此可以将上面的SuppressWarnings Annotation进行缩写：
+
+[java] view plaincopy在CODE上查看代码片派生到我的代码片
+//当annotation只有单一成员，并成员命名为"value=",这时可以省去"value="  
+    @SuppressWarnings({"unchecked","fallthrough"})  
+    public void ccc(){  
+          
+    }  
+
+如果value数组所声明的成员值个数为一个时，可以省去大括号：
+
+[java] view plaincopy在CODE上查看代码片派生到我的代码片
+//如果SuppressWarnings所声明的被禁止警告个数为一个时，可以省去大括号  
+    @SuppressWarnings("unchecked")  
+    public void ddd(){  
+          
+    }  
